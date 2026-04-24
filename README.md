@@ -6,7 +6,7 @@ A hybrid RAG + Text-to-SQL chatbot for football fans covering the Big 5 European
 - Match stats, team goals, head-to-head records (Text-to-SQL)
 - Player goals, assists, xG, penalties (Understat data)
 - Club history, trophies, managers, rivalries (RAG + Wikipedia)
-- Query rewriting — handles typos, abbreviations (EPL, BL), nicknames (CR7, Juve)
+- Query rewriting — handles typos, abbreviations (EPL, BL)
 - Season inference — understands "this season", "last season"
 
 ## Data Sources
