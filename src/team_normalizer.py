@@ -1,0 +1,150 @@
+import re
+
+# Aliases → exact name in matches table (SQLite)
+MATCHES_ALIASES = {
+    # England
+    "man utd": "Man United", "manchester united": "Man United", "mufc": "Man United",
+    "man city": "Man City", "manchester city": "Man City", "mcfc": "Man City",
+    "spurs": "Tottenham", "tottenham hotspur": "Tottenham",
+    "the gunners": "Arsenal", "gooners": "Arsenal",
+    "the blues": "Chelsea", "chelsea fc": "Chelsea",
+    "the reds": "Liverpool", "liverpool fc": "Liverpool",
+    "wolves": "Wolves", "wolverhampton": "Wolves",
+    "west brom": "West Brom", "west bromwich": "West Brom",
+    "west ham": "West Ham", "hammers": "West Ham",
+    "newcastle": "Newcastle", "toon": "Newcastle",
+    "nottingham forest": "Nott'm Forest", "nott'm forest": "Nott'm Forest", "forest": "Nott'm Forest",
+    "qpr": "QPR", "queens park rangers": "QPR",
+    "leicester": "Leicester", "the foxes": "Leicester",
+    "brighton": "Brighton", "seagulls": "Brighton",
+    # Spain
+    "barca": "Barcelona", "fc barcelona": "Barcelona",
+    "real madrid": "Real Madrid",
+    "atletico madrid": "Ath Madrid", "atletico": "Ath Madrid", "atleti": "Ath Madrid",
+    "athletic bilbao": "Ath Bilbao", "bilbao": "Ath Bilbao", "athletic club": "Ath Bilbao",
+    "real betis": "Betis", "betis": "Betis",
+    "real sociedad": "Sociedad",
+    "rayo vallecano": "Vallecano", "rayo": "Vallecano",
+    "espanyol": "Espanol", "rcd espanyol": "Espanol",
+    # Germany
+    "fc bayern": "Bayern Munich", "bayern munich": "Bayern Munich", "bayern": "Bayern Munich", "fcb": "Bayern Munich",
+    "borussia dortmund": "Dortmund", "bvb": "Dortmund", "dortmund": "Dortmund",
+    "monchengladbach": "M'gladbach", "gladbach": "M'gladbach", "borussia monchengladbach": "M'gladbach",
+    "bayer leverkusen": "Leverkusen", "leverkusen": "Leverkusen", "bayer": "Leverkusen",
+    "eintracht frankfurt": "Ein Frankfurt", "frankfurt": "Ein Frankfurt",
+    "fc koln": "FC Koln", "cologne": "FC Koln", "koln": "FC Koln",
+    "schalke": "Schalke 04", "schalke 04": "Schalke 04",
+    "hamburger sv": "Hamburg", "hsv": "Hamburg", "hamburg": "Hamburg",
+    "rb leipzig": "RB Leipzig", "leipzig": "RB Leipzig", "rbl": "RB Leipzig",
+    "vfb stuttgart": "Stuttgart", "stuttgart": "Stuttgart",
+    "vfl wolfsburg": "Wolfsburg", "wolfsburg": "Wolfsburg",
+    "hertha": "Hertha", "hertha berlin": "Hertha",
+    "union berlin": "Union Berlin",
+    "freiburg": "Freiburg", "sc freiburg": "Freiburg",
+    "mainz": "Mainz", "fsv mainz": "Mainz",
+    "hoffenheim": "Hoffenheim", "tsg hoffenheim": "Hoffenheim",
+    "augsburg": "Augsburg", "fc augsburg": "Augsburg",
+    "werder bremen": "Werder Bremen", "werder": "Werder Bremen",
+    "hannover": "Hannover", "hannover 96": "Hannover",
+    "st pauli": "St Pauli", "fc st pauli": "St Pauli",
+    # Italy
+    "juventus fc": "Juventus", "juve": "Juventus", "juventus": "Juventus",
+    "ac milan": "Milan", "milan": "Milan",
+    "inter milan": "Inter", "internazionale": "Inter", "inter": "Inter",
+    "as roma": "Roma", "roma": "Roma",
+    "ssc napoli": "Napoli", "napoli": "Napoli",
+    "ss lazio": "Lazio", "lazio": "Lazio",
+    "acf fiorentina": "Fiorentina", "fiorentina": "Fiorentina",
+    "atalanta bc": "Atalanta", "atalanta": "Atalanta",
+    "torino fc": "Torino", "torino": "Torino",
+    "udinese": "Udinese",
+    "bologna": "Bologna",
+    "sampdoria": "Sampdoria",
+    "genoa": "Genoa",
+    "sassuolo": "Sassuolo",
+    "verona": "Verona", "hellas verona": "Verona",
+    "lecce": "Lecce",
+    "monza": "Monza",
+    "cagliari": "Cagliari",
+    "spezia": "Spezia",
+    "salernitana": "Salernitana",
+    # France
+    "paris saint-germain": "Paris SG", "psg": "Paris SG", "paris sg": "Paris SG",
+    "olympique de marseille": "Marseille", "marseille": "Marseille", "om": "Marseille",
+    "olympique lyonnais": "Lyon", "lyon": "Lyon",
+    "as monaco": "Monaco", "monaco": "Monaco",
+    "losc lille": "Lille", "lille": "Lille", "losc": "Lille",
+    "stade rennais": "Rennes", "rennes": "Rennes",
+    "ogc nice": "Nice", "nice": "Nice",
+    "rc lens": "Lens", "lens": "Lens",
+    "girondins de bordeaux": "Bordeaux", "bordeaux": "Bordeaux",
+    "as saint-etienne": "St Etienne", "saint-etienne": "St Etienne", "st etienne": "St Etienne",
+    "montpellier": "Montpellier",
+    "nantes": "Nantes",
+    "reims": "Reims",
+    "toulouse": "Toulouse",
+    "brest": "Brest",
+    "lorient": "Lorient",
+    "strasbourg": "Strasbourg",
+}
+
+# Aliases → exact name in players table (Understat uses full names)
+PLAYERS_TABLE_ALIASES = {
+    "man utd": "Manchester United", "man united": "Manchester United", "mufc": "Manchester United",
+    "man city": "Manchester City", "mcfc": "Manchester City",
+    "spurs": "Tottenham Hotspur", "tottenham": "Tottenham Hotspur",
+    "wolves": "Wolverhampton Wanderers",
+    "west ham": "West Ham",
+    "newcastle": "Newcastle United",
+    "leicester": "Leicester City",
+    "barca": "Barcelona", "fc barcelona": "Barcelona",
+    "atletico": "Atletico Madrid", "atletico madrid": "Atletico Madrid", "atleti": "Atletico Madrid",
+    "bilbao": "Athletic Club", "athletic bilbao": "Athletic Club",
+    "betis": "Real Betis", "real betis": "Real Betis",
+    "sociedad": "Real Sociedad", "real sociedad": "Real Sociedad",
+    "vallecano": "Rayo Vallecano", "rayo": "Rayo Vallecano",
+    "bayern": "Bayern Munich", "fc bayern": "Bayern Munich", "fcb": "Bayern Munich",
+    "bvb": "Borussia Dortmund", "dortmund": "Borussia Dortmund",
+    "gladbach": "Borussia Monchengladbach", "monchengladbach": "Borussia Monchengladbach",
+    "bayer": "Bayer Leverkusen", "leverkusen": "Bayer Leverkusen",
+    "frankfurt": "Eintracht Frankfurt",
+    "koln": "FC Koln", "cologne": "FC Koln",
+    "schalke": "Schalke 04",
+    "hamburg": "Hamburger SV", "hsv": "Hamburger SV",
+    "leipzig": "RB Leipzig", "rb leipzig": "RB Leipzig",
+    "stuttgart": "VfB Stuttgart",
+    "wolfsburg": "VfL Wolfsburg",
+    "juve": "Juventus",
+    "ac milan": "AC Milan",
+    "inter milan": "Inter", "internazionale": "Inter",
+    "as roma": "Roma",
+    "napoli": "Napoli", "ssc napoli": "Napoli",
+    "lazio": "Lazio", "ss lazio": "Lazio",
+    "fiorentina": "Fiorentina",
+    "atalanta": "Atalanta",
+    "psg": "Paris Saint-Germain", "paris saint-germain": "Paris Saint-Germain",
+    "marseille": "Marseille", "om": "Marseille",
+    "lyon": "Lyon",
+    "monaco": "Monaco",
+    "lille": "Lille", "losc": "Lille",
+    "rennes": "Rennes",
+    "nice": "Nice",
+    "lens": "Lens",
+    "bordeaux": "Bordeaux",
+    "st etienne": "Saint-Etienne", "saint-etienne": "Saint-Etienne",
+}
+
+def normalize_teams_in_text(text: str) -> str:
+    """Replace team aliases in text using matches table names."""
+    for alias, canonical in sorted(MATCHES_ALIASES.items(), key=lambda x: len(x[0]), reverse=True):
+        pattern = r'(?<!\w)' + re.escape(alias) + r'(?!\w)'
+        text = re.sub(pattern, canonical, text, flags=re.IGNORECASE)
+    return text
+
+def normalize_team(name: str) -> str:
+    return MATCHES_ALIASES.get(name.lower().strip(), name)
+
+if __name__ == "__main__":
+    tests = ["Juve", "BVB", "Inter Milan", "PSG", "Bayer", "Leipzig", "Atletico", "Rayo"]
+    for t in tests:
+        print(f"{t} → {normalize_teams_in_text(t)}")

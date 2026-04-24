@@ -1,0 +1,19 @@
+# Sensitive
+.env
+
+# Large data files
+data/football.db
+vectordb/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Checkpoints (can be regenerated)
+data/checkpoint.json
+data/understat_checkpoint.json
+
+# Test files
+src/test_env.py
+src/fix_roma.py
