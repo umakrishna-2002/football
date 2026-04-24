@@ -52,3 +52,6 @@ python3 src/chat.py
 - "How many UCLs did Barcelona win?"
 - "Top 5 assisters in Serie A 2022-23?"
 - "How many penalties did Haaland score in 2022-23?"
+
+## Detailed Documentation
+For architecture, RAG pipeline, Text-to-SQL implementation, prompt engineering techniques, and design decisions, see [DOCUMENTATION.md](DOCUMENTATION.md)
